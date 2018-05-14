@@ -128,6 +128,7 @@ $(function () {
     var $plus = $('.plus'),
         $reduce = $('.reduce'),
         $all_sum = $('.sum');
+        $stock_sum = $all_sum.data('g_amount');
     $plus.click(function () {
         var $inputVal = $(this).prev('input'),
             $count = parseInt($inputVal.val())+1,
@@ -135,8 +136,13 @@ $(function () {
             $priceTotalObj = $(this).parents('.order_lists').find('.sum_price'),
             $price = $(this).parents('.order_lists').find('.price').html(),  //单价
             $priceTotal = $count*parseInt($price.substring(1));
-        $inputVal.val($count);
-        $priceTotalObj.html('￥'+$priceTotal.toFixed(2));
+        if($inputVal.val()<=($stock_sum - 1)){
+        	$inputVal.val($count);
+            $priceTotalObj.html('￥'+$priceTotal.toFixed(2));
+        }
+        if($inputVal.val()>=($stock_sum - 1) && !$(this).hasClass('reSty')){
+        	$(this).addClass('reSty');
+        }
         if($inputVal.val()>1 && $obj.hasClass('reSty')){
             $obj.removeClass('reSty');
         }
@@ -166,6 +172,9 @@ $(function () {
             $priceTotal = 0;
         if($(this).val()==''){
             $(this).val('1');
+        }
+        if($(this).val()>($stock_sum - 1)){
+        	$(this).val($stock_sum);
         }
         $(this).val($(this).val().replace(/\D|^0/g,''));
         $count = $(this).val();

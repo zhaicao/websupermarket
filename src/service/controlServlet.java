@@ -85,7 +85,7 @@ public class controlServlet extends HttpServlet {
 		if(type.equals("logout")){
 			session.removeAttribute("user");
 			session.removeAttribute("admin");
-			gor("../index.jsp", request, response);
+			gor("index.jsp", request, response);
 		}
 		else{
 			response.getWriter().println("error");
@@ -201,73 +201,39 @@ public class controlServlet extends HttpServlet {
 			map = dao.selectmap(sql);
 			response.getWriter().println(JSONObject.fromObject(map).toString());
 		}
-		//增加活动
-		else if (type.equals("addTeacher")){
-			String tea_name = request.getParameter("tea_name");
-			String tea_course_type = request.getParameter("tea_course_type");
-			String tea_summary = request.getParameter("tea_summary");
-			String tea_address = request.getParameter("tea_address");
-			String tea_date = request.getParameter("tea_date");
-			String tea_department = request.getParameter("tea_department");
-			String tea_specify = request.getParameter("tea_specify");
-			String tea_peoples = request.getParameter("tea_peoples");
-			JSONArray peopleList = JSONArray.fromObject(request.getParameter("tea_peoList"));
-			//插入活动
-			dao.commOper("insert into teacher(t_name, t_summary, t_date, t_address, t_department, t_specifying,t_persons, t_course_type, t_course_id, isdel) values ('"+tea_name+"','"+ tea_summary+"','"+ tea_date+"','"+ tea_address+"','"+ tea_department+"',"+ tea_specify+","+ tea_peoples+",'"+ tea_course_type+"', 0, 0)");
-			//获得活动Id
-			String activityId = dao.getStr("select max(t_id) from teacher");
-			ArrayList<String> sqlList = new ArrayList<String>();
-			//判断是否指定参与人
-			if( tea_specify.equals("1") && peopleList.size() > 0){
-				for(int i=0;i<peopleList.size();i++){
-					sqlList.add("insert into specify(s_userid, s_activityid, s_status, s_date, s_isdel) values("+ peopleList.getInt(i)+","+ activityId+", 0, now(), 0)");
-				}
-				//根据指定的人数插入指定表
-				dao.commOper("update teacher set t_persons = "+ peopleList.size()+" where t_id = " + activityId);
-				//更新活动的人数
-				dao.commOperSqls(sqlList);
-			}
-			map.put("status", "success");
-			jsonObject = JSONObject.fromObject(map);	
-			response.getWriter().println(jsonObject.toString());
+		//订单管理
+		else if (type.equals("orders")){
+			String sql = "select * from orders where o_isdel = 0 ORDER BY o_date desc";
+			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);
+			response.getWriter().println(JSONArray.fromObject(list));
 		}
-		//活动详情
-		else if (type.equals("teacher_detail")){
-			String teacher_id =  request.getParameter("teacher_id");		
-			map = dao.selectmap("select * from teacher t where t.isdel=0 and t.t_id=" + teacher_id);
-			ArrayList<HashMap> list = (ArrayList<HashMap>) dao.select("select s.*,u.user_realname, u.user_phone from specify s LEFT JOIN users u on s.s_userid = u.user_id where s.s_isdel = 0 and u.isdel = 0 and s.s_activityid = " + teacher_id);
-			map.put("specifyList", list);
+		//处理订单
+		else if (type.equals("orderComplete")){
+			String oId = request.getParameter("oId");
+			dao.commOper("update orders set o_status = 1 where o_id = " + oId);
+			map.put("status","success");
 			jsonObject = JSONObject.fromObject(map);
-			response.getWriter().println(jsonObject.toString());
+			response.getWriter().println(jsonObject.toString());				
+		}
+		//销售管理
+		else if (type.equals("sales")){
+			//String teacher_id =  request.getParameter("teacher_id");	
+			String sql = "select * from sale s LEFT JOIN orders o on s.s_orderid = o.o_id where s_isdel = 0 ORDER BY s_date desc";
+			ArrayList<HashMap> list = (ArrayList<HashMap>) dao.select(sql);
+			response.getWriter().println(JSONArray.fromObject(list));
 		}
 		//修改活动
-		else if (type.equals("editTeacher")){
-			String tea_id = request.getParameter("tea_id");
-			String tea_name = request.getParameter("tea_name");
-			String tea_course_type = request.getParameter("tea_course_type");
-			String tea_summary = request.getParameter("tea_summary");
-			String tea_address = request.getParameter("tea_address");
-			String tea_date = request.getParameter("tea_date");
-			String tea_department = request.getParameter("tea_department");
-			String tea_specify = request.getParameter("tea_specify");
-			String tea_peoples = request.getParameter("tea_peoples");
-			JSONArray peopleList = JSONArray.fromObject(request.getParameter("tea_peoList"));
-			dao.commOper("update teacher set t_name = '"+ tea_name+"', t_summary = '"+ tea_summary+"', t_date = '"+ tea_date+"', t_address = '"+ tea_address+"', t_department = '"+ tea_department+"', t_specifying = "+ tea_specify+", t_persons = "+ tea_peoples+", t_course_type = '"+ tea_course_type+"' where t_id = " + tea_id);
-			dao.commOper("update specify set s_isdel = 1 where s_activityid = " + tea_id);
-			ArrayList<String> sqlList = new ArrayList<String>();
-			//判断是否指定参与人
-			if( tea_specify.equals("1") && peopleList.size() > 0){
-				for(int i=0;i<peopleList.size();i++){
-					sqlList.add("insert into specify(s_userid, s_activityid, s_status, s_date, s_isdel) values("+ peopleList.getInt(i)+","+ tea_id+", 0, now(), 0)");
-				}
-				//根据指定的人数插入指定表
-				dao.commOper("update teacher set t_persons = "+ peopleList.size()+" where t_id = " + tea_id);
-				//更新活动的人数
-				dao.commOperSqls(sqlList);
-			}
-			map.put("status", "success");
-			jsonObject = JSONObject.fromObject(map);	
-			response.getWriter().println(jsonObject.toString());
+		else if (type.equals("salePie")){
+			String startDate = request.getParameter("startDate");
+			String endDate = request.getParameter("endDate");
+			String sql = "select s_gtype as type,sum(s_sumprice) as value from sale where s_isdel = 0 and s_status !=2";
+			if( !startDate.isEmpty() )
+				sql +=" and s_date >= '"+startDate+" 00:00:00'";
+			if( !endDate.isEmpty() )
+				sql +=" and s_date <= '"+endDate+" 23:59:59'";
+			sql += " GROUP BY s_gtype";
+			ArrayList<HashMap> list = (ArrayList<HashMap>) dao.select(sql);
+			response.getWriter().println(JSONArray.fromObject(list));
 		}
 		//删除活动
 		else if (type.equals("delTeacher")){
@@ -333,38 +299,6 @@ public class controlServlet extends HttpServlet {
 			String sql = "select t.t_id, t.t_name, IFNULL(s.s_course_id,0) as s_course_id, IFNULL(s.signup,0) as signup, IFNULL(s.attend,0) as attend from teacher t left join ( select s_course_id, count(1) as signup,sum(case when s_status = 1 then 1 else 0 end) as attend from signup where isdel = 0 GROUP BY s_course_id ) as s ON t.t_id = s.s_course_id where t.isdel = 0";
 			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);			
 			response.getWriter().println(JSONArray.fromObject(list));
-		}
-//		//发布成绩
-//		else if (type.equals("publishscore")){
-//			String s_id = request.getParameter("s_id"); //报名编号
-//			String score = request.getParameter("score"); //报名编号
-//			dao.commOper("update signup set s_status=2,s_score="+score+" where s_id=" + s_id);
-//			map.put("status", "success");
-//			jsonObject = JSONObject.fromObject(map);
-//			response.getWriter().println(jsonObject.toString());
-//		}
-		//咨询问题
-		else if (type.equals("question")){
-			int limit = Integer.parseInt(request.getParameter("limit")); //每页显示条数
-			int offset = Integer.parseInt(request.getParameter("offset")); //开始数
-			String search =  request.getParameter("search");
-			if (search == null) search = ""; //判断是否为空
-			String sql = "select f.*,u.user_realname,u.user_phone from forum f LEFT JOIN users u on f.f_user_id=u.user_id where 1=1 and f.f_qtype=1 and f.isdel=0 and f_content like '%"+search+"%'";
-			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(SqlPageSQL.getPageMySQL(sql,offset + 1, limit));			
-			int total = dao.getInt("select count(*) from forum f LEFT JOIN users u on f.f_user_id=u.user_id where 1=1 and f.f_qtype=1 and f.isdel=0 and f_content like '%"+search+"%'");
-			map.put("total", total);
-			map.put("rows", list);
-			jsonObject = JSONObject.fromObject(map);
-			response.getWriter().println(jsonObject.toString());
-		}
-		//咨询问题回复
-		else if (type.equals("reply")){
-			String f_id = request.getParameter("f_id"); //每页显示条数
-			String reply = request.getParameter("question_reply"); //每页显示条数
-			dao.commOper("update forum set f_status='已回复',f_reply='"+reply+"',f_reply_date=now() where f_id=" + f_id);
-			map.put("status", "success");
-			jsonObject = JSONObject.fromObject(map);
-			response.getWriter().println(jsonObject.toString());
 		}
 		else
 			doGet(request, response);//转到Get

@@ -11,7 +11,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>报名管理</title>
+  <title>订单管理</title>
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/bootstrap-table.min.js"></script>
@@ -29,23 +29,31 @@
   <body>
 
     <div class="container">
-    <h4>报名管理</h4>
-		<div>
-			<label>活动列表</label>
-			<select id="ac_list" class="form-control" style="width: 300px;"></select>
-		</div>
+    <h4>订单管理</h4>
 		<table id="tb_signup"></table>
     </div> 
  <script>
     
  $(function () {
 	 
-	 _initActiv()
-	 
 	 
 	 //1.初始化Table
 	 var oTable = new TableInit();
 	 oTable.Init();
+	 
+	 
+	 $("#tb_signup").on('click','.complete',function(event){
+		 var oId = $(this).data('oid');	
+		 $.ajax({
+				type: "post",
+				url: transformer(window.location.origin),
+				dataType:'json',
+				data: {type: 'orderComplete', oId: oId},
+				success: function(data, status){
+					$('#tb_signup').bootstrapTable('refresh', {silent: true});
+				}
+			});
+	 })
 	  	 
 });
 	 
@@ -80,60 +88,77 @@
 				 minimumCountColumns: 2, //最少允许的列数
 				 clickToSelect: true, //是否启用点击选中行
 				 //height: 528,  //行高，如果没有设置height属性，表格自动根据记录条数自动调整表格高度
-				 uniqueId: "s_id", //每一行的唯一标识，一般为主键列
+				 uniqueId: "o_id", //每一行的唯一标识，一般为主键列
 				 showToggle:true, //是否显示详细视图和列表视图的切换按钮
 				 cardView: false, //是否显示详细视图
 				 detailView: false, //是否显示父子表
-				 idField : 's_id',
+				 idField : 'o_id',
 				 showExport: true, //是否显示导出
 				 exportDataType: true, //导出所有数据
 				 exportTypes: ['excel'],
 				 columns: [{
-					 field: 't_name',
-					 title: '活动名',
+					 field: 'o_id',
+					 title: '订单号',
 					 valign: 'middle',
 					 align: 'center',
 					 width: '15%'
 				 },{
-				 field: 'user_realname',
-				 title: '姓名',
+				 field: 'o_status',
+				 title: '状态',
 				 valign: 'middle',
 				 align: 'center',
-				 width: '15%' //表格宽度
-				 }, {
-				 field: 'user_phone',
-				 title: '联系方式',
-				 align: 'center',
-				 valign: 'middle',
-				 width: '15%' //表格宽度
-				 }, {
-				 field: 's_score',
-				 title: '票号',
-				 align: 'center',
-				 valign: 'middle',
-				 width: '25%' //表格宽度
-				 }, {
-				 field: 's_date',
-				 title: '报名时间',
-				 align: 'center',
-				 valign: 'middle',
+				 width: '10%',
 				 formatter: function(value,row,index){
-					return value.substring(0,16);
-		                 }
+					if(value == 1)	
+					 	return '已发货';
+					else if(value == 2)
+						return '已取消';
+					else
+						return '未发货';
+			     }
+				 }, {
+				 field: 'o_receiver',
+				 title: '送货地址',
+				 align: 'center',
+				 valign: 'middle',
+				 width: '40%',
+				 formatter: function(value,row,index){
+						return value+','+row.o_phone+','+row.o_address;
+				 }
+				 }, {
+				 field: 'o_method',
+				 title: '付款方式',
+				 align: 'center',
+				 valign: 'middle',
+				 width: '10%',
+				 formatter: function(value,row,index){
+					if( value == 0)	
+					 	return '银行付款';
+					else
+						return '货到付款';
+				 }
+				 }, {
+				 field: 'o_amount',
+				 title: '商品件数(件)',
+				 align: 'center',
+				 valign: 'middle',
+			     width: '10%'
+				 }, {
+				field: 'o_sumprice',
+				title: '总价格',
+				align: 'center',
+				valign: 'middle',
+				width: '10%'
 				 },{
-				 field: 's_status',
+				 field: 'o_status',
 				 title: '操作',
 				 align: 'center',
 				 valign: 'middle',
 				 formatter: function(value,row,index){
 					if (value == 0)
-						 return '<a href="javascript:confirmsignup('+row.s_id+');" class="btn btn-info">验票</a>';
-					 /* else if(value == 1)
-						 return '<a href="javascript:publish('+row.s_id+');" class="btn btn-success">发布成绩</a>'; */
-					else if( value == 2)
-						return '已取消'
-					 else
-						 return '已验证'
+						 return '<a href="#" class="btn btn-info complete" data-oid='+row.o_id+'>处理</a>';
+					else
+						 return '-'
 					 }
 				 
 				 }],
@@ -143,82 +168,16 @@
 		 //得到查询的参数
 		 oTableInit.queryParams = function (params) {
 			 var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
-				 type: "signup",
-				 a_id: $("#ac_list").val()
+				 type: "orders"
 			 };
 			 	return temp;
 		 };
 			return oTableInit;
 	};
 	
-	$("#ac_list").change(function() {
-		$('#tb_signup').bootstrapTable('refresh', {silent: true});
-	})
-	
-	// 初始化活动
-	function _initActiv() {
-		$.ajax({
-	 		type: "post",
-	 		url: transformer(window.location.origin),
-	 		dataType:'json',
-	 		data: {type: 'teacher'},
-	 		async: false,
-	 		success: function(data){
-	 			var sHtml = ''
-	 			data.forEach(function(o) {
-	 				sHtml += '<option value="'+o.t_id+'">'+o.t_name+'</option>'
-	 			})
-	 			$("#ac_list").html(sHtml)
-	 		},
-	 		error: function(XMLHttpRequest, textStatus, errorThrown){
-	 			console.info(errorThrown);
-	 		}
-	 	});
-	}
-	
-	//确认报名
-	 function confirmsignup(s_id){
-	 	$.ajax({
-	 		type: "post",
-	 		url: transformer(window.location.origin),
-	 		dataType:'json',
-	 		data: {type: 'confirmsignup', s_id: s_id},
-	 		success: function(status){
-	 			$('#tb_signup').bootstrapTable('refresh', {silent: true});
-	 			alert("操作成功！");
-	 		},
-	 		error: function(XMLHttpRequest, textStatus, errorThrown){
-	 			console.info(errorThrown);
-	 		}
-	 	});
-	 };
-	 
-	 //发布成绩
-	 function publish(s_id, realname, course){
-		 var score = prompt("请输入该学生本课程的成绩:","");
-		 if(score == ""){
-			 alert("请输入成绩!");
-			 score = prompt("请输入该学生本课程的成绩:","");
-		 }else if(!/^-?\d+\.?\d{0,2}$/.test(score)){
-			 alert("请输入数字！");
-			 score = prompt("请输入该学生本课程的成绩:","");
-		 }else{
-			 $.ajax({
-			 		type: "post",
-			 		url: transformer(window.location.origin),
-			 		dataType:'json',
-			 		data: {type: 'publishscore', score: score, s_id: s_id},
-			 		success: function(status){
-			 			$('#tb_signup').bootstrapTable('refresh', {silent: true});
-			 			alert("操作成功！");
-			 		},
-			 		error: function(XMLHttpRequest, textStatus, errorThrown){
-			 			console.info(errorThrown);
-			 		}
-			 	}); 
-		 }
+
+		 
 	 	
-	 };
  
  </script>
   </body>

@@ -69,11 +69,10 @@
 	
 <!-- 头部 -->
 <%@include file="header.jsp"%>
-<!--/ 头部 -->       
-        
-
+<!--/ 头部 -->        
+<div id="flyItem" class="fly_item"><img id="cartImg" src="js/cart/images/item-pic.jpg" width="40" height="40"></div>  
 <div class="container layout layout-margin-top">
-    
+ 
 <ol class="breadcrumb">
     <li><a href="goods.jsp">全部商品</a></li>
     
@@ -102,13 +101,11 @@
             </div>
             <div class="course-infobox-content">               
             	<a class="btn btn-success" id="ask">购买</a>            
-            	<a href="javascript:;" class="btn btn-success btnCart" style="display:none">加入购物车</a>         	          
-            </div>
-            <div id="flyItem" class="fly_item"><img id="cartImg" src="js/cart/images/item-pic.jpg" width="40" height="40"></div>             
+            	<a href="javascript:;" class="btn btn-success btnCart" style="display:none">加入购物车</a>       	          
+            </div>             
         </div>
-    </div>                 
-</div>
-    
+    </div>         
+</div>              
     <div class="content">
         <ul class="nav nav-tabs" role="tablist">
             
@@ -361,8 +358,9 @@ function _init(type){
 		}
 	});
 	
-	//初始化购物车
-	_initCart(user.user_id);
+	if( user )
+		//初始化购物车
+		_initCart(user.user_id);
 	
 };
 

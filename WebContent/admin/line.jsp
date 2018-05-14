@@ -11,7 +11,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>报名管理</title>
+  <title>销售趋势</title>
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/bootstrap-table.min.js"></script>
@@ -22,12 +22,20 @@
   <script type="text/javascript" src="js/custom.js"></script>
   <script type="text/javascript" src="js/plugins/echarts/echarts.min.js"></script>
   <script type="text/javascript" src="js/jquery.mini.js"></script>
+  <script src="js/plugins/jedate/jedate.js"></script>
   </head>
   <body>
 
     <div class="container">
-    	<h4>活动统计管理</h4>
-		
+    	<h4></h4>
+		<div class="select-item" style="margin-top: 20px;">
+			<label>类型</label>
+			<select id="typeList" style="width: 20%;"></select>
+			<label>时间</label>
+			<input type="datetime" id="startTime" name="startTime" placeholder="请输入开始时间" />----
+			<input type="datetime" id="endTime" name="endTime" placeholder="请输入结束时间" />
+			<a href="#" class="btn btn-info btn-refresh">查询</a>
+		</div>
 		<div id="chart" style="height: 400px; margin-top: 30px;"></div>
     </div> 
  <script>
@@ -35,14 +43,60 @@
  $(function () {
 	 var myChart = echarts.init(document.getElementById('chart'));
 	 
+	 _initDate()
 	 _initChart()
+	 _addEvent()
+	  
+	 function getCurrentMonthFirst(){
+		 var date=new Date();
+		 date.setDate(1);
+		 return date;
+	}
+	
+	 function getCurrentMonthLast(){
+		 var date=new Date();
+		 var currentMonth=date.getMonth();
+		 var nextMonth=++currentMonth;
+		 var nextMonthFirstDay=new Date(date.getFullYear(),nextMonth,1);
+		 var oneDay=1000*60*60*24;
+		 return new Date(nextMonthFirstDay-oneDay);
+	}
+	 
+	 function _addEvent() {
+		 $(".btn-refresh").click(function() {
+			 _initChart()
+		 })
+	 }
+	 
+	 function _initDate () {
+		 var first = getCurrentMonthFirst(),
+		 	end = getCurrentMonthLast()
+		 
+		 jeDate({
+			dateCell:"#startTime",//isinitVal:true,
+			format:"YYYY-MM-DD",
+			isTime:false //isClear:false
+		})
+		jeDate({
+			dateCell:"#endTime",//isinitVal:true,
+			format:"YYYY-MM-DD",
+			isTime:false //isClear:false
+		})
+		
+		$("#startTime").val(new Date(first).Format('yyyy-MM-dd'))
+		$("#endTime").val(new Date(end).Format('yyyy-MM-dd'))
+	 }
 	 
 	 function _initChart() {
 		 $.ajax({
 	 		type: "post",
 	 		url: transformer(window.location.origin),
 	 		dataType:'json',
-	 		data: {type: 'activityStatistics'},
+	 		data: JSON.stringify({
+	 			reqType: 'saleLine',
+	 			startDate: $('#startTime').val(),
+	 			endDate: $('#endTime').val()
+	 		}),
 	 		async: false,
 	 		success: function(data){
 	 			_createChart(data)
@@ -58,18 +112,17 @@
 		 var oData = _parseData(data)
 			if(!oData.x.length) {
 					alert('暂无数据');
-				}
-				
+				}			
 				// 绘制图形。
 				var option = {
 			    title: {
-			        text: '统计'
+			        text: '营业额统计'
 			    },
 			    tooltip: {
 			        trigger: 'axis'
 			    },
 			    legend: {
-			        data:['报名数','签到数']
+			        data:['营业额']
 			    },
 			    grid: {
 			        left: '3%',
@@ -92,14 +145,9 @@
 			    },
 			    series: [
 			        {
-			            name:'报名数',
+			            name:'营业额',
 			            type:'line',
-			            data: oData.income
-			        },
-			        {
-			            name:'签到数',
-			            type:'line',
-			            data:oData.cost
+			            data: oData.y
 			        }
 			    ]
 			};
@@ -109,14 +157,12 @@
 	 function _parseData(data) {
 			var oReturn = {
 				x: [],
-				income: [],	// 报名数
-				cost: [],	// 签到数
+				y: [],	// 报名数
 			}
 			
 			data.forEach(function(o) {
-				oReturn.x.push(o.t_name)
-				oReturn.income.push(parseFloat(o.signup))
-				oReturn.cost.push(parseFloat(o.attend))
+				oReturn.x.push(o.date)
+				oReturn.y.push(parseFloat(o.turnover))
 			})
 			
 			return oReturn

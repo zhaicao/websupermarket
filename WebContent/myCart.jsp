@@ -173,6 +173,7 @@ function _init(){
 				var price = obj.g_price;
 				if( obj.g_isonsale == 1)
 					price = obj.g_onsaleprice;
+				console.info(obj);
 				$(".order_content").append(
 						'<ul class="order_lists">'+
 						'<li class="list_chk">'+
@@ -192,7 +193,7 @@ function _init(){
 						'<li class="list_amount">'+
 						'<div class="amount_box">'+
 						'<a href="javascript:;" class="reduce reSty">-</a>'+
-						'<input type="text" value="'+obj.c_gamount+'" class="sum">'+
+						'<input type="text" value="'+obj.c_gamount+'" class="sum" data-g_amount='+obj.g_amount+'>'+
 						'<a href="javascript:;" class="plus">+</a>'+
 						'</div>'+
 						'</li>'+

@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<title>我的活动</title>
+<title>我的订单</title>
 
 	<link rel="shortcut icon" href="favicon.ico">
 	<link rel="stylesheet" href="css/font-awesome.min.css">
@@ -58,6 +58,24 @@
             text-align: center;
             font-size: 14px;
         }
+        .order-detail{
+        	text-align: center;
+            font-size: 14px;
+        }
+        .order-price{
+    		font-size: 14px;
+    		font-family: Verdana,Tahoma,arial;
+    		color: #3c3c3c;
+    		font-weight: bold;
+    		text-align: center;
+        }
+        .order-sumprice{
+        	font-size: 14px;
+    	    font-family: Verdana,Tahoma,arial;
+    	    color: #ff0000;
+    		font-weight: bold;
+    		text-align: center;
+        }
     </style>
 	
 <style style="text/css">
@@ -77,7 +95,18 @@
 <div class="container layout">
     <div class="row">
         <div class="col-md-12 layout-body">
-            
+         <div class="row">
+         	<div class="content" style="border:0">
+        	 <div class="col-md-2">订单编号</div>
+        	 <div class="col-md-1">状态</div>
+        	 <div class="col-md-1">商品数量</div>
+        	 <div class="col-md-2">商品总价(元)</div>
+        	 <div class="col-md-1">收货人</div>
+        	 <div class="col-md-1">付款方式</div>
+        	 <div class="col-md-2">时间</div>
+        	 <div class="col-md-2">操作</div>
+        	</div>
+         </div>   
 <div class="content">
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active">
@@ -99,9 +128,27 @@
     </div>
 </div>
 
+<!-- 购买模态框 -->
+<div class="modal fade order-detail-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role=document>
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">订单详情</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-
-<script src="js/lib.js"></script>
+	<script src="js/lib.js"></script>
     <script src="js/jquery.min.js"></script>
     <script src="js/ace.js"></script>
     <script src="js/aliyun-oss-sdk-4.3.0.min.js"></script>
@@ -115,7 +162,7 @@
     <script src="js/bootstrap-table-zh-CN.min.js"></script>
     <script src="js/bootstrap-table-filter-control.min.js"></script>
     <script src="js/raven.min.js"></script>
-	<!-- <script src="js/index.js"></script> -->
+	<script src="js/bootstrap.min.js"></script>
 	<script src="js/jquery.mini.js"></script>
 	<!-- 分页插件 -->
 	<script type="text/javascript" src="js/jqPaginator.js"></script>
@@ -140,7 +187,7 @@ $(function() {
 				type: "post",
 				url: "foreendServlet",
 				dataType:'json',
-				data: {type: 'mycourses', user_id: user.user_id,  curPage: 1, pageSize: pageSize},
+				data: {type: 'myOrders', user_id: user.user_id,  curPage: 1, pageSize: pageSize},
 				async: false,
 				success: function(data, status){			
 					totalPages  = Math.ceil(data.total/pageSize);//计算出总共页数
@@ -163,33 +210,37 @@ $(function() {
 		    			type: "post",
 		    			url: transformer(window.location.origin),
 		    			dataType:'json',
-		    			data: {type: 'mycourses', user_id: user.user_id, curPage: num, pageSize: pageSize},
+		    			data: {type: 'myOrders', user_id: user.user_id, curPage: num, pageSize: pageSize},
 		    			async: false,
 		    			success: function(data, status){   				
 		    				$("#courses").empty();
 		    				$.each(data.courses, function(i, obj){
-		    					var score,sHandle;
-		    					if(obj.s_status == 0) {	
-		    						sHandle = '<div class="col-md-3">'
-					   					 +'<button class="btn btn-info confirm-active" data-id="'+obj.s_id+'" style="margin-right: 20px">签到</button>'
-					   					 +'<button class="btn btn-default cancel-active" data-id="'+obj.s_id+'">取消</button>'
-					   					 +'</div>'
-		    					}else if(obj.s_status == 1) {
-		    						sHandle = '签到成功'
-		    					}else if(obj.s_status == 2) {
-		    						sHandle = '已取消'
+		    					var status,sHandle,method;
+		    					if(obj.o_status == 1){
+		    						status = '已发货';
+		    						sHandle = '-';
+		    					}	
+		    					else if(obj.o_status == 2){
+		    					     status = '已取消';
+		    					     sHandle = '-';
+		    					}else{
+		    						status = '未发货';
+		    						sHandle = '<button class="btn btn-info cancel" data-oid='+obj.o_id+' style="margin-right: 20px">取消</button>';
 		    					}
-		    						
+		    					if( obj.o_status == 1)
+		    						method = '货到付款';
+		    					else
+		    						method = '银行付款';
 		    					$("#courses").append('<li class="question-item">'+
-		    						    			 '<div class="col-md-4">'+
-		    					        			 '<h4>'+obj.t_name+'</h4>'+
-		    					        			 '<div class="question-item-summary">'+
-		    										 '<span class="question-item-date">票号：'+obj.s_score+'</span>'+
-		    					    				 '</div>'+
+		    						    			 '<div class="col-md-2"><a href="#" class="order-details" data-oid='+obj.o_id+'>'+obj.o_id+'</a></div>'+
+		    					   					 '<div class="col-md-1">'+status+'</div>'+ 
+		    					   					 '<div class="col-md-1">'+obj.o_amount+'件</div>'+ 
+		    					   					 '<div class="col-md-2">'+obj.o_sumprice+'</div>'+
+		    					   					 '<div class="col-md-1">'+obj.o_receiver+'</div>'+
+		    					   					 '<div class="col-md-1">'+method+'</div>'+
+		    					   					 '<div class="col-md-2">'+obj.o_date.substring(0,19)+'</div>'+
+		    					   					 '<div class="col-md-2">'+sHandle+
 		    					   					 '</div>'+
-		    					   					 '<div class="col-md-3">'+
-		    					   					 '</div>'+ 
-		    					   					 sHandle+
 		    					 					 '</li>');
 		    				})
 		    				totalPages  = Math.ceil(data.total/pageSize);//计算出总共页数
@@ -200,40 +251,57 @@ $(function() {
 	}
 	
 	function _addEvent() {
-		$(".container").on('click', '.confirm-active', function(jEvent) {
+		$(".container").on('click', '.order-details', function(jEvent) {
 			var jTarget = $(jEvent.target),
-				sId = jTarget.data('id')
-			if(confirm("确定要签到该活动？")){
-				$.ajax({
-					type: "post",
-					url: "controlServlet",
-					dataType:'json',
-					data: {type: 'confirmsignup', s_id: sId},
-					async: false,
-					success: function(data, status){
-						if( data.status == 'success')
-							alert('签到成功');
-						_init()
-					}
-				});
-			}
-			
-		})
-		
-		$(".container").on('click', '.cancel-active', function(jEvent) {
-			var jTarget = $(jEvent.target),
-				sId = jTarget.data('id')
-			if(confirm("确定要取消该活动？")){
+				oId = jTarget.data('oid'),
+				jContent = $('.modal-body');
+			jContent.empty();
 				$.ajax({
 					type: "post",
 					url: "foreendServlet",
 					dataType:'json',
-					data: {type: 'cancelSignup', s_id: sId},
+					data: {type: 'getOrderSale', oId: oId},
 					async: false,
 					success: function(data, status){
-						if( data.status == 'success')
+						var height;
+						$.each(data.sales, function(i, obj){
+							var price;
+							if( obj.s_gisonsale == 1)
+								price = obj.s_price;
+							else
+								price = obj.s_gprice;
+							jContent.append('<div class="form-group">'+
+											'<div class="col-md-2 order-detail">'+obj.s_gcode+'</div>'+
+											'<div class="col-md-4 order-detail">'+obj.s_gname+'</div>'+
+											'<div class="col-md-2 order-price">￥'+price+'</div>'+
+											'<div class="col-md-2 order-detail">'+obj.s_amount+'件</div>'+
+											'<div class="col-md-2 order-sumprice">￥'+obj.s_sumprice+'</div>'+
+								    		'</div>');
+							height = i;
+						})
+						height = 40 + (height+1) * 10;
+						jContent.animate({height,height}, 600);
+						$('.modal.fade.order-detail-modal').modal('show');
+					}
+				});
+			
+		})
+		
+		$(".container").on('click', '.cancel', function(jEvent) {
+			var jTarget = $(jEvent.target),
+				oId = jTarget.data('oid');
+			if(confirm("确定要取消该笔订单？")){
+				$.ajax({
+					type: "post",
+					url: "foreendServlet",
+					dataType:'json',
+					data: {type: 'cancelOrder', oId: oId},
+					async: false,
+					success: function(data, status){
+						if( data.status == 'success'){
+							_init();
 							alert('取消成功');
-						_init()
+						}
 					}
 				});
 			}

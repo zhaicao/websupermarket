@@ -110,31 +110,31 @@
                     </li>                  
                     
                     <li>
-                        <a class="J_menuItem" href="signup.jsp">
+                        <a class="J_menuItem" href="orders.jsp">
                         <i class="fa fa-desktop"></i> 
-                        <span class="nav-label">报名管理</span>
+                        <span class="nav-label">订单管理</span>
                         </a>
                     </li>
                     
                     <li>
-                        <a class="J_menuItem" href="course.jsp">
+                        <a class="J_menuItem" href="sale.jsp">
                         <i class="fa fa-edit"></i>
-                        <span class="nav-label">参会情况管理</span>
+                        <span class="nav-label">销售管理</span>
                         </a>
                     </li>
                     
-                    <li>
-                        <a class="J_menuItem" href="acStatu.jsp">
-                        <i class="fa fa-edit"></i>
-                        <span class="nav-label">活动统计管理</span>
+                    <li class="user-manage" >
+                        <a href="#">
+                            <i class="fa fa fa-bar-chart-o"></i>
+                            <span class="nav-label">销售统计</span>
+                            <span class="fa arrow"></span>
                         </a>
-                    </li>
-                    
-                    <li>
-                        <a class="J_menuItem" href="question.jsp">
-                        <i class="fa fa-desktop"></i> 
-                        <span class="nav-label">咨询问题</span>
-                        </a>
+                        <ul class="nav nav-second-level">
+                            <li>
+                                <a class="J_menuItem user-manage-1" href="pie.jsp" >销售比</a>
+                                <a class="J_menuItem user-manage-2" href="line.jsp" >销售趋势</a>
+                            </li>
+                        </ul>
                     </li>
       
                     <li>

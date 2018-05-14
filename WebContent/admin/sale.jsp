@@ -11,7 +11,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>报名管理</title>
+  <title>销售管理</title>
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/bootstrap-table.min.js"></script>
@@ -22,30 +22,38 @@
   <script type="text/javascript" src="js/jquery.base64.js"></script>
   <script type="text/javascript" src="js/tableExport.js"></script>
    <script type="text/javascript" src="js/bootstrap-table-export.js"></script>
-   
-   
+  
   <script type="text/javascript" src="js/custom.js"></script>
   <script type="text/javascript" src="js/jquery.mini.js"></script>
   </head>
   <body>
 
     <div class="container">
-    <h4>参会情况管理</h4>
-		<div>
-			<label>参会列表</label>
-			<select id="ac_list" class="form-control" style="width: 300px;"></select>
-		</div>
+    <h4>销售管理</h4>
 		<table id="tb_signup"></table>
     </div> 
  <script>
     
  $(function () {
 	 
-	 _initActiv()
-	  
+	 
 	 //1.初始化Table
 	 var oTable = new TableInit();
 	 oTable.Init();
+	 
+	 
+	 $("#tb_signup").on('click','.complete',function(event){
+		 var oId = $(this).data('oid');	
+		 $.ajax({
+				type: "post",
+				url: transformer(window.location.origin),
+				dataType:'json',
+				data: {type: 'orderComplete', oId: oId},
+				success: function(data, status){
+					$('#tb_signup').bootstrapTable('refresh', {silent: true});
+				}
+			});
+	 })
 	  	 
 });
 	 
@@ -89,76 +97,99 @@
 				 exportDataType: true, //导出所有数据
 				 exportTypes: ['excel'],
 				 columns: [{
-					 field: 't_name',
-					 title: '活动名',
+					 field: 's_gtype',
+					 title: '类别',
 					 valign: 'middle',
 					 align: 'center',
-					 width: '15%'
+					 width: '10%'
 				 },{
-				 field: 'user_realname',
-				 title: '姓名',
+				 field: 's_gcode',
+				 title: '货号',
 				 valign: 'middle',
 				 align: 'center',
-				 width: '15%' //表格宽度
+				 width: '15%'
+				 },{
+				 field: 's_gname',
+				 title: '商品名',
+				 valign: 'middle',
+				 align: 'center',
+				 width: '10%'
 				 }, {
-				 field: 'user_phone',
-				 title: '联系方式',
+				 field: 's_type',
+				 title: '订单号',
 				 align: 'center',
 				 valign: 'middle',
-				 width: '15%' //表格宽度
+				 width: '10%',
+				 formatter: function(value,row,index){
+						if(value == 0)
+							return row.s_orderid;
+						else
+							return '零售';
+				 }
 				 }, {
-				 field: 's_score',
-				 title: '票号',
+				 field: 's_amount',
+				 title: '商品件数(件)',
 				 align: 'center',
 				 valign: 'middle',
-				 width: '25%' //表格宽度
+			     width: '10%'
+				 },{
+				field: 's_gisonsale',
+				title: '单价(元)',
+				align: 'center',
+				valign: 'middle',
+				 width: '10%',
+				 formatter: function(value,row,index){
+						if(value == 1)
+							return row.s_price;
+						else
+							return row.s_gprice;
+				 }
 				 }, {
-				 field: 's_attenddate',
-				 title: '签到时间',
+				field: 's_sumprice',
+				title: '总价(元)',
+				align: 'center',
+				valign: 'middle',
+				width: '10%'
+				 },{
+				 field: 's_status',
+				 title: '状态',
 				 align: 'center',
 				 valign: 'middle',
 				 formatter: function(value,row,index){
-					return value.substring(0,16);
-		                 }
-				 }],
+					if (value == 0)
+						 return '未发货';
+					else if(value == 1)
+						 return '已发货'
+					else
+						return '取消'
+					 }
+				 
+				 },{
+						field: 's_date',
+						title: '时间',
+						align: 'center',
+						valign: 'middle',
+						width: '10%',
+						 formatter: function(value,row,index){
+								return value.substring(0,19);
+						 }
+						 }],
 			});		 	
 	 	};
 	 
 		 //得到查询的参数
 		 oTableInit.queryParams = function (params) {
 			 var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
-				 type: "attended",
-				 a_id: $("#ac_list").val()
+				 type: "sales"
 			 };
 			 	return temp;
 		 };
 			return oTableInit;
 	};
 	
-	$("#ac_list").change(function() {
-		$('#tb_signup').bootstrapTable('refresh', {silent: true});
-	})
-	
-	// 初始化活动
-	function _initActiv() {
-		$.ajax({
-	 		type: "post",
-	 		url: transformer(window.location.origin),
-	 		dataType:'json',
-	 		data: {type: 'teacher'},
-	 		async: false,
-	 		success: function(data){
-	 			var sHtml = ''
-	 			data.forEach(function(o) {
-	 				sHtml += '<option value="'+o.t_id+'">'+o.t_name+'</option>'
-	 			})
-	 			$("#ac_list").html(sHtml)
-	 		},
-	 		error: function(XMLHttpRequest, textStatus, errorThrown){
-	 			console.info(errorThrown);
-	 		}
-	 	});
-	}
+
+		 
+	 	
  
  </script>
   </body>

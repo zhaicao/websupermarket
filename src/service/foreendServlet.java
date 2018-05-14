@@ -211,8 +211,9 @@ public class foreendServlet extends HttpServlet {
 				else
 					sumPrice = Double.parseDouble(goods.get("cAmount").toString()) * Double.parseDouble(gMap.get("g_price").toString());
 				//增加销售表
-				sqls.add("insert into sale(s_orderid, s_gid, s_type, s_gcode, s_gtype, s_gunit, s_gprice, s_gisonsale, s_price, s_amount, s_sumprice, s_date) value("+oId+","+gMap.get("g_id")+",0,'"+gMap.get("g_code")+"','"+gMap.get("g_type")+"','"+gMap.get("g_unit")+"',"+gMap.get("g_price")+","+gMap.get("g_isonsale")+","+gMap.get("g_onsaleprice")+","+goods.get("cAmount")+","+sumPrice+",now())");
+				sqls.add("insert into sale(s_orderid, s_gid, s_type, s_gcode, s_gtype, s_gunit, s_gprice, s_gisonsale, s_price, s_amount, s_sumprice, s_date, s_gname, s_status) value("+oId+","+gMap.get("g_id")+",0,'"+gMap.get("g_code")+"','"+gMap.get("g_type")+"','"+gMap.get("g_unit")+"',"+gMap.get("g_price")+","+gMap.get("g_isonsale")+","+gMap.get("g_onsaleprice")+","+goods.get("cAmount")+","+sumPrice+",now(),'"+gMap.get("g_name")+"',0)");
 				sqls.add("update cart set c_isdel = 1 where c_id = " + goods.get("cId"));
+				sqls.add("update goods set g_amount = g_amount -"+goods.get("cAmount")+" where g_id = " + gMap.get("g_id"));
 			}
 			dao.commOperSqls(sqls);
 			map.put("status","success");
@@ -220,69 +221,34 @@ public class foreendServlet extends HttpServlet {
 			response.getWriter().println(jsonObject.toString());
 			
 		}
-		//我的课程
-		else if (type.equals("mycourses")){
+		//我的订单
+		else if (type.equals("myOrders")){
 			String user_id = request.getParameter("user_id");
 			int limit = Integer.parseInt(request.getParameter("pageSize")); //每页显示条数
 			int curPage = Integer.parseInt(request.getParameter("curPage")); //当前页
-			String csql = "select s.*,t.t_id,t.t_name,t.t_date from signup s left join teacher t on s.s_course_id = t.t_id where s.s_user_id="+user_id;
+			String csql = "select * from orders where o_isdel = 0 and o_userid = "+user_id;
+			csql += " order by o_date desc";
 			int total = dao.getInt("select count(*) from ("+ csql+") t");
 			ArrayList<HashMap> clist = (ArrayList<HashMap>)dao.select(SqlPageSQL.getPageMySQL(csql,curPage, limit));
 			map.put("courses",clist);
 			map.put("total",total);
 			jsonObject = JSONObject.fromObject(map);
-			response.getWriter().println(jsonObject.toString());
-					
-				}
-		//论坛发帖
-		else if(type.equals("subforum")){
-			String user_id = request.getParameter("user_id");
-			String forumtitle = request.getParameter("forumtitle");
-			String forum = request.getParameter("forum");	
-			dao.commOper("insert into forum(f_summary, f_content, f_qtype, f_ftype, f_root, f_user_id, f_status,  f_date, isdel)values('"+forumtitle+"','"+forum+"',0,1,0,"+user_id+",null,now(),0)");
-			map.put("status", "success");
-			jsonObject = JSONObject.fromObject(map);	
 			response.getWriter().println(jsonObject.toString());				
-			}
-		//论坛帖子列表
-		else if(type.equals("forum")){
-			int limit = Integer.parseInt(request.getParameter("pageSize")); //每页显示条数
-			int curPage = Integer.parseInt(request.getParameter("curPage")); //当前页
-			String fsql = "select f.*,u.user_realname from forum f left JOIN users u on f.f_user_id = u.user_id where f_ftype=1 and f_root=0 order by f.f_date desc";
-			ArrayList<HashMap> clist = (ArrayList<HashMap>)dao.select(SqlPageSQL.getPageMySQL(fsql,curPage, limit));
-			int total = dao.getInt("select count(*) from forum where f_ftype=1 and f_root=0");
-			map.put("forum", clist);
-			map.put("total", total);
+		}
+		//获得订单销售详情
+		else if (type.equals("getOrderSale")){
+			String oId = request.getParameter("oId");
+			String sql = "select * from sale s where s.s_isdel = 0 and s.s_orderid = "+oId;
+			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);
+			map.put("sales",list);
 			jsonObject = JSONObject.fromObject(map);
 			response.getWriter().println(jsonObject.toString());				
 		}
-		//论坛帖子详情
-		else if(type.equals("forumdetail")){
-			String f_id = request.getParameter("f_id");
-			HashMap fdmap = dao.selectmap("select f.*, u.user_id, u.user_realname from forum f left JOIN users u on f.f_user_id = u.user_id where f_ftype=1 and f_id=" + f_id);
-			ArrayList<HashMap> frlist = (ArrayList<HashMap>)dao.select("select f.*, u.user_id, u.user_realname from forum f left JOIN users u on f.f_user_id = u.user_id where f_ftype=1 and f_root="+f_id+" order by f_date ASC");
-			map.put("forum", fdmap);
-			map.put("replys", frlist);
-			jsonObject = JSONObject.fromObject(map);
-			response.getWriter().println(jsonObject.toString());				
-		}
-		//论坛跟帖
-		else if(type.equals("forumreply")){
-			String user_id = request.getParameter("user_id");
-			String f_id = request.getParameter("f_id");
-			String reply = request.getParameter("reply");	
-			dao.commOper("insert into forum(f_content, f_qtype, f_ftype, f_root, f_user_id, f_status,  f_date, isdel)values('"+reply+"',0,1,"+f_id+","+user_id+",Null,now(),0)");
-			//更新主记录最近回复人及时间
-			dao.commOper("update forum set f_reply=(select user_realname from users where user_id="+user_id+"),f_reply_date=now()where f_id=" + f_id);
-			HashMap rmap = dao.selectmap("select f.*, u.user_id, u.user_realname from forum f LEFT JOIN users u on f.f_user_id = u.user_id where f_ftype=1 and f_id=(select max(f_id) from forum where f_root="+f_id+") and f_user_id=" + user_id);
-			map.put("reply", rmap);
-			jsonObject = JSONObject.fromObject(map);	
-			response.getWriter().println(jsonObject.toString());				
-		}
-		//推荐论坛帖子
-		else if(type.equals("recforum")){
-			ArrayList<HashMap> rflist = (ArrayList<HashMap>)dao.select("select * from forum where f_ftype=1 and f_root=0 order by f_date desc limit 5");
-			map.put("recforum", rflist);
+		//取消订单
+		else if (type.equals("cancelOrder")){
+			String oId = request.getParameter("oId");
+			dao.commOper("update orders set o_status = 2 where o_id = " + oId);
+			map.put("status","success");
 			jsonObject = JSONObject.fromObject(map);
 			response.getWriter().println(jsonObject.toString());				
 		}
