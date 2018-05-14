@@ -136,7 +136,12 @@
                             </li>
                         </ul>
                     </li>
-      
+      				<li>
+                        <a class="J_menuItem" href="notice.jsp">
+                        <i class="fa fa-flask"></i> 
+                        <span class="nav-label">公告管理</span>
+                        </a>
+                    </li>
                     <li>
                         <a class="J_menuItem" href="javascript:parent.location.href='../controlServlet?type=logout'">
                         <i class="fa fa-flask"></i> 

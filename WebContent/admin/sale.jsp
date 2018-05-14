@@ -161,7 +161,7 @@
 					else if(value == 1)
 						 return '已发货'
 					else
-						return '取消'
+						return '已取消'
 					 }
 				 
 				 },{

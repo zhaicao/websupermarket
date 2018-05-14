@@ -170,7 +170,6 @@
         
         <div class="sidebox-body recommend-courses-content" id="notice" style="height:200px">
 		<!-- 公告 -->
-		公告内容
         </div>
 </div>
  
@@ -246,6 +245,17 @@ $(function(){
 		$(".mui-mbar-tabs").show();
 		$(".btn.btn-success.btnCart").show();
 	}
+	
+	$.ajax({
+		type: "post",
+		url: "${pageContext.request.contextPath}/controlServlet",
+     dataType:'json',
+     data: {type: 'getNotice'},
+		success: function(data, status){
+			$("#notice").text(data.n_content);
+    		
+		}
+	});
 	
 	
 	

@@ -23,6 +23,7 @@ import dao.CommDAO;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import util.SqlPageSQL;
+import util.StrUtil;
 
 
 /**
@@ -222,7 +223,7 @@ public class controlServlet extends HttpServlet {
 			ArrayList<HashMap> list = (ArrayList<HashMap>) dao.select(sql);
 			response.getWriter().println(JSONArray.fromObject(list));
 		}
-		//修改活动
+		//销售比
 		else if (type.equals("salePie")){
 			String startDate = request.getParameter("startDate");
 			String endDate = request.getParameter("endDate");
@@ -235,70 +236,47 @@ public class controlServlet extends HttpServlet {
 			ArrayList<HashMap> list = (ArrayList<HashMap>) dao.select(sql);
 			response.getWriter().println(JSONArray.fromObject(list));
 		}
-		//删除活动
-		else if (type.equals("delTeacher")){
-			String teacher_id =  request.getParameter("teacher_id");			
-			dao.commOper("update teacher set isdel= 1 where t_id=" + teacher_id);
-			dao.commOper("update specify set s_isdel= 1 where s_activityid=" + teacher_id);
-			map.put("status", "success");
-			jsonObject = JSONObject.fromObject(map);	
-			response.getWriter().println(jsonObject.toString());
-		}
-		//推荐课程或教师
-		else if (type.equals("recommend")){
-			String recType = request.getParameter("recType");
-			String id =  request.getParameter("id");
-			if (recType.equals("course"))
-				dao.commOper("update course set isrec= 1 where c_id=" + id);
-			else
-				dao.commOper("update teacher set isrec= 1 where t_id=" + id);
-			map.put("status", "success");
-			jsonObject = JSONObject.fromObject(map);	
-			response.getWriter().println(jsonObject.toString());
-		}
-		//取消推荐课程或教师
-		else if (type.equals("cancel")){
-			String recType = request.getParameter("recType");
-			String id =  request.getParameter("id");
-			if (recType.equals("course"))
-				dao.commOper("update course set isrec= 0 where c_id=" + id);
-			else
-				dao.commOper("update teacher set isrec= 0 where t_id=" + id);
-			map.put("status", "success");
-			jsonObject = JSONObject.fromObject(map);	
-			response.getWriter().println(jsonObject.toString());
-		}
-		//报名管理
-		else if (type.equals("signup")){
-			String aId = request.getParameter("a_id");
-			String sql = "select s.*,u.user_realname,u.user_phone,u.user_department,t.t_name from signup s LEFT JOIN users u on s.s_user_id=u.user_id LEFT JOIN teacher t on s.s_course_id = t.t_id where s.isdel=0 and u.isdel = 0 and t.isdel = 0";
-			if( aId != null )
-				sql += " and s.s_course_id = " + aId;
-			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);			
+		//销售趋势折线图
+		else if (type.equals("saleLine")){
+			String gType = request.getParameter("gType"); 
+			String fDate = request.getParameter("startDate");
+			String sDate = request.getParameter("endDate");
+			String sql = "select sum(s_sumprice) from sale where s_isdel = 0 and s_gtype = '"+gType+"'";
+			double turnover;
+			ArrayList<HashMap> list = new ArrayList();
+			//获得日历List
+			ArrayList<String> calendarList = StrUtil.genCalendar(fDate,sDate);
+			//遍历日历，获得统计结果
+			for( String date : calendarList ){
+				turnover = dao.getDouble(sql + " and s_date like '"+ date+"%'");
+				HashMap<String, Object> aMap = new HashMap<String, Object>();
+				aMap.put("total", turnover);
+				aMap.put("date", date);
+				list.add(aMap);
+			}
 			response.getWriter().println(JSONArray.fromObject(list));
 		}
-		//验票
-		else if (type.equals("confirmsignup")){
-			String s_id = request.getParameter("s_id"); //报名编号
-			dao.commOper("update signup set s_status=1,s_attenddate=now() where s_id=" + s_id);
-			map.put("status", "success");
+		//获得全部类型
+		else if (type.equals("getAllType")){
+			String sql = "select distinct s_gtype from sale where s_isdel = 0 and s_status != 2";
+			ArrayList<HashMap> list = (ArrayList<HashMap>) dao.select(sql);
+			response.getWriter().println(JSONArray.fromObject(list));
+		}
+		//获得公告
+		else if (type.equals("getNotice")){
+			String sql = "select * from notice where n_id=1";
+			map = dao.selectmap(sql);
 			jsonObject = JSONObject.fromObject(map);
 			response.getWriter().println(jsonObject.toString());
 		}
-		//参会管理
-		else if (type.equals("attended")){
-			String aId = request.getParameter("a_id");
-			String sql = "select s.*,u.user_realname,u.user_phone,u.user_department,t.t_name from signup s LEFT JOIN users u on s.s_user_id=u.user_id LEFT JOIN teacher t on s.s_course_id = t.t_id where s.isdel=0 and u.isdel = 0 and t.isdel = 0 and s.s_status = 1";
-			if( aId != null )
-				sql += " and s.s_course_id = " + aId;
-			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);			
-			response.getWriter().println(JSONArray.fromObject(list));
-		}
-		//活动统计
-		else if (type.equals("activityStatistics")){
-			String sql = "select t.t_id, t.t_name, IFNULL(s.s_course_id,0) as s_course_id, IFNULL(s.signup,0) as signup, IFNULL(s.attend,0) as attend from teacher t left join ( select s_course_id, count(1) as signup,sum(case when s_status = 1 then 1 else 0 end) as attend from signup where isdel = 0 GROUP BY s_course_id ) as s ON t.t_id = s.s_course_id where t.isdel = 0";
-			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);			
-			response.getWriter().println(JSONArray.fromObject(list));
+		//修改公告
+		else if (type.equals("updateNotice")){
+			String notice = request.getParameter("notice"); 
+			String sql = "update notice set n_content = '"+notice+"' where n_id = 1";
+			dao.commOper(sql);
+			map.put("reqCode", "0");
+			jsonObject = JSONObject.fromObject(map);
+			response.getWriter().println(jsonObject.toString());
 		}
 		else
 			doGet(request, response);//转到Get

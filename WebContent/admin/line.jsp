@@ -85,6 +85,21 @@
 		
 		$("#startTime").val(new Date(first).Format('yyyy-MM-dd'))
 		$("#endTime").val(new Date(end).Format('yyyy-MM-dd'))
+		
+		 $.ajax({
+	 		type: "post",
+	 		url: transformer(window.location.origin),
+	 		dataType:'json',
+	 		data: {
+	 			type: 'getAllType'
+	 		},
+	 		async: false,
+	 		success: function(data){
+	 			$.each(data, function(i, obj){
+	 				$("#typeList").append("<option value='"+obj.s_gtype+"'>"+obj.s_gtype+"</option>");
+	 			})
+	 		}
+	 	})
 	 }
 	 
 	 function _initChart() {
@@ -92,11 +107,12 @@
 	 		type: "post",
 	 		url: transformer(window.location.origin),
 	 		dataType:'json',
-	 		data: JSON.stringify({
-	 			reqType: 'saleLine',
+	 		data: {
+	 			type: 'saleLine',
+	 			gType: $("#typeList").val(),
 	 			startDate: $('#startTime').val(),
 	 			endDate: $('#endTime').val()
-	 		}),
+	 		},
 	 		async: false,
 	 		success: function(data){
 	 			_createChart(data)
@@ -162,7 +178,7 @@
 			
 			data.forEach(function(o) {
 				oReturn.x.push(o.date)
-				oReturn.y.push(parseFloat(o.turnover))
+				oReturn.y.push(o.total.toFixed(2))
 			})
 			
 			return oReturn

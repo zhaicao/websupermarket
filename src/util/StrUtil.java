@@ -7,7 +7,10 @@ package util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -126,5 +129,82 @@ public class StrUtil {
 			return 0;
 		}			
 	}
+	
+	 /** 计算两个日期（yyyy-MM-dd）之间间隔天数
+     * @param smdate date
+     * @param bdate date
+     * @return 返回天数
+     * @throws ParseException
+     */
+    public static int daysBetween(Date smdate,Date bdate) throws ParseException    
+    {    
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");  
+        smdate=sdf.parse(sdf.format(smdate));  
+        bdate=sdf.parse(sdf.format(bdate));  
+        Calendar cal = Calendar.getInstance();    
+        cal.setTime(smdate);    
+        long time1 = cal.getTimeInMillis();                 
+        cal.setTime(bdate);    
+        long time2 = cal.getTimeInMillis();
+        long between_days;
+        if( time1 <= time2)
+        	between_days=(time2-time1)/(1000*3600*24); 
+        else
+        	between_days=(time1-time2)/(1000*3600*24);          
+       return Integer.parseInt(String.valueOf(between_days));           
+    }
+    
+    /** 计算两个时间(yyyy-MM-dd HH:mm:ss)之间间隔天数
+     * @param smdate date
+     * @param bdate date
+     * @return 返回天数
+     * @throws ParseException
+     */
+    public static int dateBetween(Date smdate,Date bdate) throws ParseException    
+    {    
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  
+        smdate=sdf.parse(sdf.format(smdate));  
+        bdate=sdf.parse(sdf.format(bdate));  
+        Calendar cal = Calendar.getInstance();    
+        cal.setTime(smdate);    
+        long time1 = cal.getTimeInMillis();                 
+        cal.setTime(bdate);    
+        long time2 = cal.getTimeInMillis();
+        double between_days;
+        if( time1 <= time2)
+        	between_days=((time2-time1)/(double)(1000*3600*24)); 
+        else
+        	between_days=((time1-time2)/(double)(1000*3600*24)); 
+       return (int) Math.ceil(between_days);           
+    }
+    
+    
+    /**生成日历
+     * @param fDate 字符串日期
+     * @param sDate 字符串日期
+     * @return 返回日期格式的List
+     */
+    public static ArrayList<String> genCalendar(String fDate, String sDate){
+    	ArrayList<String>  calendarList = new ArrayList<String> ();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");  
+        try {
+			Date fTime = sdf.parse(fDate);
+			Date sTime = sdf.parse(sDate);
+			int interval = daysBetween(fTime, sTime);
+			Calendar calendar = new GregorianCalendar();
+			//判断哪个时间最小，以最小的时间做日历起点
+			fTime = (fTime.before(sTime) ? fTime : sTime);
+			calendarList.add(sdf.format(fTime));
+			calendar.setTime(fTime); //将日期转化为日历       
+            for( int i = 0; i < interval; i++ ){
+            	calendar.add(Calendar.DAY_OF_MONTH, 1);//获得当前日期后一天日期
+                fTime = calendar.getTime();
+                calendarList.add(sdf.format(fTime));
+            }          
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}  //将字符串转化为指定的日期格式 
+        return calendarList;
+    }
    
 }
