@@ -11,7 +11,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>订单管理</title>
+  <title>订单详情</title>
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/bootstrap-table.min.js"></script>
@@ -33,28 +33,13 @@
 		<table id="tb_signup"></table>
     </div> 
  <script>
-    
+ var parms = getUrlParms();	  
  $(function () {
-	 
-	 
+	  
 	 //1.初始化Table
 	 var oTable = new TableInit();
 	 oTable.Init();
-	 
-	 
-	 $("#tb_signup").on('click','.complete',function(event){
-		 var oId = $(this).data('oid');	
-		 $.ajax({
-				type: "post",
-				url: transformer(window.location.origin),
-				dataType:'json',
-				data: {type: 'orderComplete', oId: oId},
-				success: function(data, status){
-					$('#tb_signup').bootstrapTable('refresh', {silent: true});
-				}
-			});
-	 })
-	  	 
+  	 
 });
 	 
 	 //Table构造函数
@@ -88,99 +73,62 @@
 				 minimumCountColumns: 2, //最少允许的列数
 				 clickToSelect: true, //是否启用点击选中行
 				 //height: 528,  //行高，如果没有设置height属性，表格自动根据记录条数自动调整表格高度
-				 uniqueId: "o_id", //每一行的唯一标识，一般为主键列
+				 uniqueId: "s_id", //每一行的唯一标识，一般为主键列
 				 showToggle:true, //是否显示详细视图和列表视图的切换按钮
 				 cardView: false, //是否显示详细视图
 				 detailView: false, //是否显示父子表
-				 idField : 'o_id',
-				 showExport: true, //是否显示导出
-				 exportDataType: true, //导出所有数据
-				 exportTypes: ['excel'],
+				 idField : 's_id',
 				 columns: [{
-					 field: 'o_id',
-					 title: '订单号',
-					 valign: 'middle',
-					 align: 'center',
-					 width: '15%'
+				field: 's_gcode',
+				title: '货号',
+				valign: 'middle',
+				align: 'center',
+				width: '15%'
 				 },{
-				 field: 'o_status',
-				 title: '状态',
+				 field: 's_gtype',
+				 title: '类别',
 				 valign: 'middle',
 				 align: 'center',
-				 width: '10%',
-				 formatter: function(value,row,index){
-					if(value == 1)	
-					 	return '已发货';
-					else if(value == 2)
-						return '已取消';
-					else
-						return '未发货';
-			     }
+				 width: '10%'
 				 }, {
-				 field: 'o_receiver',
-				 title: '送货地址',
+				 field: 's_gname',
+				 title: '商品名',
 				 align: 'center',
 				 valign: 'middle',
-				 width: '40%',
-				 formatter: function(value,row,index){
-						return value+','+row.o_phone+','+row.o_address;
-				 }
+				 width: '40%'
 				 }, {
-				 field: 'o_method',
-				 title: '付款方式',
+				 field: 's_gisonsale',
+				 title: '单价',
 				 align: 'center',
 				 valign: 'middle',
 				 width: '10%',
 				 formatter: function(value,row,index){
-					if( value == 0)	
-					 	return '银行付款';
+					if( value == 1)	
+					 	return row.s_price;
 					else
-						return '货到付款';
+						return row.s_gprice;
 				 }
 				 }, {
-				 field: 'o_amount',
+				 field: 's_amount',
 				 title: '商品件数(件)',
 				 align: 'center',
 				 valign: 'middle',
 			     width: '10%'
 				 }, {
-				field: 'o_sumprice',
+				field: 's_sumprice',
 				title: '总价格',
 				align: 'center',
 				valign: 'middle',
 				width: '10%'
-				 },{
-				 field: 'o_status',
-				 title: '操作',
-				 align: 'center',
-				 valign: 'middle',
-				 formatter: function(value,row,index){
-					if (value == 0)
-						 return '<a href="#" class="btn btn-info complete" data-oid='+row.o_id+'>处理</a>';
-					else
-						 return '-'
-					 }
-				 
-				 }],
-				//绑定行双击事件
-				 onDblClickRow:function(item, $element){
-					 setModalIframe({
-						 title : "订单详情",  //父模态框标题
-						 path : "orderDetail.jsp?oId=" + item.o_id,
-						 btn_name : "确定",  //父模态框确定按钮显示文字
-						 size : "", //父模态框大小
-						 action : function(){ //绑定事件
-							 $("#openmodalParent", parent.document).trigger("click");					 
-						 }				 
-					 });
-				}
+				 }]
 			});		 	
 	 	};
 	 
 		 //得到查询的参数
 		 oTableInit.queryParams = function (params) {
 			 var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
-				 type: "orders"
+				 type: "ordersDetail",
+				 oId: parms.oId
 			 };
 			 	return temp;
 		 };

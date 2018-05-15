@@ -140,7 +140,7 @@ public class controlServlet extends HttpServlet {
 				if (role.equals("1"))
 					session.setAttribute("user", JSONObject.fromObject(umap).toString());
 				else
-					session.setAttribute("admin", JSONObject.fromObject(umap).toString());
+					session.setAttribute("user", JSONObject.fromObject(umap).toString());
 			}	
 			jsonObject = JSONObject.fromObject(map);
 			response.getWriter().println(JSONObject.fromObject(map).toString());
@@ -205,6 +205,13 @@ public class controlServlet extends HttpServlet {
 		//订单管理
 		else if (type.equals("orders")){
 			String sql = "select * from orders where o_isdel = 0 ORDER BY o_date desc";
+			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);
+			response.getWriter().println(JSONArray.fromObject(list));
+		}
+		//订单详情
+		else if (type.equals("ordersDetail")){
+			String oId = request.getParameter("oId");
+			String sql = "select * from sale where s_orderid = " + oId;
 			ArrayList<HashMap> list = (ArrayList<HashMap>)dao.select(sql);
 			response.getWriter().println(JSONArray.fromObject(list));
 		}

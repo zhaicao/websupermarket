@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>商品列表</title>
+<title>特价商品</title>
 
 <link rel="shortcut icon" href="favicon.ico">
 <link rel="stylesheet" href="css/font-awesome.min.css">
