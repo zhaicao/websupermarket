@@ -121,7 +121,6 @@ $(function(){
 			dataType:'json',
 			data: {type: 'delCart', cId: cId},
 			success: function(data, status){
-				console.info('delCart');
 			}
 		});
 	})
@@ -173,7 +172,6 @@ function _init(){
 				var price = obj.g_price;
 				if( obj.g_isonsale == 1)
 					price = obj.g_onsaleprice;
-				console.info(obj);
 				$(".order_content").append(
 						'<ul class="order_lists">'+
 						'<li class="list_chk">'+

@@ -22,8 +22,9 @@ import javax.servlet.http.HttpSession;
 @WebFilter("/sessionFilter")
 public class sessionFilter implements Filter {
 	
-	private String redirectUrl = "/login.html";
+	private String redirectUrl = "/index.jsp";
     private String sessionKey = "user";
+    private String[] exceptUrl = {"/goods.jsp","/onsaleGoods.jsp","/goodsDetail.jsp"};
 
     /**
      * Default constructor. 
@@ -58,14 +59,20 @@ public class sessionFilter implements Filter {
 	        //获得基础路径
 	        String path = req.getContextPath();
 	    	String basePath = request.getScheme() + "://"+ request.getServerName() + ":" + request.getServerPort()+ path + "/";
-
-	        if(url.indexOf("login.html") != -1){ 
+	    	
+	    	boolean filter = false;
+	    	for( String exceptPath: exceptUrl){
+	    		if ( url.indexOf(exceptPath) != -1 )
+	    			filter = true;
+	    	}
+	    	
+	        if(url.indexOf(redirectUrl) != -1 || filter){ 
 	        	chain.doFilter(request, response);
 	        	return;
 	        	
 	        }else{
-	        	if( session.getAttribute(sessionKey) == null && session.getAttribute("admin") == null){
-	        		out.print("<script language='javascript'>parent.location.href='"+basePath+"login.html';alert('会话超时，请重新登录');</script>");    
+	        	if( session.getAttribute(sessionKey) == null ){
+	        		out.print("<script language='javascript'>parent.location.href='"+basePath+"index.jsp';alert('会话超时，请重新登录');</script>");    
 		        }else
 		        	chain.doFilter(request, response);   	
 	        }
@@ -75,7 +82,7 @@ public class sessionFilter implements Filter {
 	 * @see Filter#init(FilterConfig)
 	 */
 	public void init(FilterConfig fConfig) throws ServletException {
-		 String url = fConfig.getInitParameter("redirectUrl");
+		    String url = fConfig.getInitParameter("redirectUrl");
 	        String key = fConfig.getInitParameter("sessionKey");
 	        
 	        redirectUrl = url == null? redirectUrl:url;
