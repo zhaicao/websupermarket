@@ -227,7 +227,7 @@ $(function() {
 		    						status = '未发货';
 		    						sHandle = '<button class="btn btn-info cancel" data-oid='+obj.o_id+' style="margin-right: 20px">取消</button>';
 		    					}
-		    					if( obj.o_status == 1)
+		    					if( obj.o_method == 1)
 		    						method = '货到付款';
 		    					else
 		    						method = '银行付款';

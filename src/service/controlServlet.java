@@ -219,6 +219,7 @@ public class controlServlet extends HttpServlet {
 		else if (type.equals("orderComplete")){
 			String oId = request.getParameter("oId");
 			dao.commOper("update orders set o_status = 1 where o_id = " + oId);
+			dao.commOper("update sale set s_status = 1 where s_isdel = 0 and s_orderid = " + oId);
 			map.put("status","success");
 			jsonObject = JSONObject.fromObject(map);
 			response.getWriter().println(jsonObject.toString());				

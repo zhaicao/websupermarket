@@ -22,7 +22,7 @@
 
   <script type="text/javascript" src="js/custom.js"></script>
   </head>
-  <body>
+  <body style="background-color: #F0F0F0;">
 
     <div class="container">
     <h4>公告管理</h4>

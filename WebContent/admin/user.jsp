@@ -22,7 +22,7 @@
   <script type="text/javascript" src="js/custom.js"></script>
   <script type="text/javascript" src="js/jquery.mini.js"></script>
   </head>
-  <body>
+  <body style="background-color: #F0F0F0;">
 
     <div class="container">
     <h4>用户管理</h4>

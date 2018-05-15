@@ -77,8 +77,8 @@ public class foreendServlet extends HttpServlet {
 		
 		//主页
 		if (type.equals("index")){
-			ArrayList<HashMap> allGoods = (ArrayList<HashMap>)dao.select("select * from goods where g_isdel = 0 order by g_id DESC");			
-			ArrayList<HashMap> onSaleGoods = (ArrayList<HashMap>)dao.select("select * from goods where g_isdel = 0 and g_isonsale = 1 order by g_id DESC");         
+			ArrayList<HashMap> allGoods = (ArrayList<HashMap>)dao.select("select * from goods where g_isdel = 0 and g_isonsale = 0 order by g_id DESC limit 10");			
+			ArrayList<HashMap> onSaleGoods = (ArrayList<HashMap>)dao.select("select * from goods where g_isdel = 0 and g_isonsale = 1 order by g_id DESC limit 10");         
 			map.put("goods", allGoods);
 			map.put("onsale", onSaleGoods);	
 			jsonObject = JSONObject.fromObject(map);	
@@ -248,6 +248,7 @@ public class foreendServlet extends HttpServlet {
 		else if (type.equals("cancelOrder")){
 			String oId = request.getParameter("oId");
 			dao.commOper("update orders set o_status = 2 where o_id = " + oId);
+			dao.commOper("update sale set s_status = 2 where s_isdel = 0 and s_orderid = " + oId);
 			map.put("status","success");
 			jsonObject = JSONObject.fromObject(map);
 			response.getWriter().println(jsonObject.toString());				

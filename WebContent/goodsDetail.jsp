@@ -84,10 +84,10 @@
     <div class="row">
     <div class="col-md-9 layout-body">
     <div class="content course-infobox">
-    <div style="display:inline;float:left;">
-    <img src="#" id="goodsImg" class="img-thumbnail" width="150px" height="150px">
+    <div style="display:inline;float:left;width:150px;height:150px">
+    <img src="#" id="goodsImg" width="100%" height="100%">
     </div>
-    <div style="margin-left: 20px;display:inline;">
+    <div style="margin-left: 20px;display:inline;width:150px;height:150px">
         <div class="clearfix course-infobox-header">
             <h4 class="pull-left course-infobox-title">
                 <span id="goodsName"></span>              
@@ -433,7 +433,7 @@ function _initAddCart(initCount){
 	// 抛物线运动
 	var myParabola = funParabola(eleFlyElement, eleShopCart, {
 		speed: 400, //抛物线速度
-		curvature: 0.0008, //控制抛物线弧度
+		curvature: 0.0005, //控制抛物线弧度
 		complete: function() { //加入购物车回调函数
 			add();
 			//隐藏抛物图片

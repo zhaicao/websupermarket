@@ -48,6 +48,8 @@
     $(function(){
     	//初始化菜单权限
     	var user = JSON.parse('<%=session.getAttribute("user")%>');
+		if (user)
+			$(".user-text").text(user.user_realname)
     })
     </script>
 
@@ -142,12 +144,6 @@
                         <span class="nav-label">公告管理</span>
                         </a>
                     </li>
-                    <li>
-                        <a class="J_menuItem" href="javascript:parent.location.href='../controlServlet?type=logout'">
-                        <i class="fa fa-flask"></i> 
-                        <span class="nav-label">退出</span>
-                        </a>
-                    </li>
                     </ul>
             </div>
         </nav>
@@ -161,12 +157,12 @@
                     </div>
                     <ul class="nav navbar-top-links navbar-right">
                         <li class="dropdown">
-                        <!--  
-                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
-                                <i class="fa fa-envelope"></i> <span class="label label-warning">16</span>
-                            </a>
-                                       
-                         -->              
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+						  <span class="user-text"></span><span class="caret"></span>
+						  </a>
+						  <ul class="dropdown-menu">
+						    <li><a href="javascript:parent.location.href='../controlServlet?type=logout'">退出</a></li>
+						  </ul>            
                         <li class="dropdown">
                         <!--  
                             <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">

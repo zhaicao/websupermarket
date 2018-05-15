@@ -22,7 +22,7 @@
   <link rel="stylesheet" type="text/css" href="css/bootstrap-table.min.css" />
 
   </head>
-  <body>
+  <body style="background-color: #F0F0F0;">
 
     <div class="container">
       <h4>商品管理</h4>
